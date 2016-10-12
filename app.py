@@ -1,11 +1,13 @@
 # coding=utf-8
 
+from StringIO import StringIO
 import os
 
 from cachetools.func import rr_cache
 from flask import Flask, jsonify
 from flask_cors import CORS
 from mercantile import Tile
+from PIL import Image
 from werkzeug.wsgi import DispatcherMiddleware
 
 from tiler import InvalidTileRequest, read_tile
@@ -33,9 +35,19 @@ def handle_ioerror(error):
 @rr_cache()
 @app.route('/<id>/<int:z>/<int:x>/<int:y>.png')
 def get_tile(id, z, x, y):
-    tile = read_tile(id, Tile(x, y, z))
+    im = Image.new("RGBA", (256, 256), None)
+    # TODO try using multiprocessing for this
+    for id in ("57fc935b84ae75bb00ec751b", "57fc988f84ae75bb00ec751d"):
+        try:
+            tile = read_tile(id, Tile(x, y, z))
+            im.paste(tile)
+        except InvalidTileRequest:
+            pass
 
-    return tile, 200, {
+    out = StringIO()
+    im.save(out, 'png')
+
+    return out.getvalue(), 200, {
         'Content-Type': 'image/png'
     }
 

@@ -88,6 +88,7 @@ def read_tile(id, tile, scale=1):
     data = render_tile(meta, tile, scale=scale)
     imgarr = np.ma.transpose(data, [1, 2, 0]).astype(np.byte)
 
+    return Image.fromarray(imgarr, 'RGBA')
     out = StringIO()
     im = Image.fromarray(imgarr, 'RGBA')
     im.save(out, 'png')
